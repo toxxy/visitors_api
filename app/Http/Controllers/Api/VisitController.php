@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Visit;
+use App\Notifications\VisitConfirmationNotification;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Notification;
 
 class VisitController extends Controller
 {
@@ -49,7 +51,45 @@ class VisitController extends Controller
         ]);
 
         $visit = Visit::create($validated);
-        return response()->json($visit->load(['department', 'site']), 201);
+        $visit->load(['department', 'site']);
+
+        // Enviar confirmación por email si el visitante proporcionó un email
+        if ($validated['visitor_email']) {
+            try {
+                \Log::info('Attempting to send visit confirmation email', [
+                    'visit_id' => $visit->id,
+                    'visitor_email' => $validated['visitor_email'],
+                    'from_address' => config('mail.from.address'),
+                    'smtp_host' => config('mail.mailers.smtp.host')
+                ]);
+
+                Notification::route('mail', $validated['visitor_email'])
+                    ->notify(new VisitConfirmationNotification($visit));
+                
+                // Log exitoso
+                \Log::info('Visit confirmation email sent successfully', [
+                    'visit_id' => $visit->id,
+                    'visitor_email' => $validated['visitor_email'],
+                    'timestamp' => now()->toISOString()
+                ]);
+            } catch (\Exception $e) {
+                // Log error pero no fallar la creación de la visita
+                \Log::error('Failed to send visit confirmation email', [
+                    'visit_id' => $visit->id,
+                    'visitor_email' => $validated['visitor_email'],
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString()
+                ]);
+            }
+        }
+
+        return response()->json([
+            'visit' => $visit,
+            'message' => $validated['visitor_email'] 
+                ? 'Visita programada exitosamente. Se ha enviado una confirmación por email.'
+                : 'Visita programada exitosamente.',
+            'email_sent' => (bool) $validated['visitor_email']
+        ], 201);
     }
 
     /**

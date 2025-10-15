@@ -19,13 +19,23 @@ class Visit extends Model
         'arrived_at',
         'departed_at',
         'status',
-        'notes'
+        'updated_by',
+        'notes',
+        'is_invalid',
+        'invalid_reason',
+        'checked_in_at',
+        'checked_out_at',
+        'check_in_count',
+        'check_out_count'
     ];
 
     protected $casts = [
         'scheduled_at' => 'datetime',
         'arrived_at' => 'datetime',
         'departed_at' => 'datetime',
+        'checked_in_at' => 'datetime',
+        'checked_out_at' => 'datetime',
+        'is_invalid' => 'boolean',
     ];
 
     public function department(): BelongsTo
@@ -36,5 +46,10 @@ class Visit extends Model
     public function site(): BelongsTo
     {
         return $this->belongsTo(Site::class);
+    }
+
+    public function updatedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'updated_by');
     }
 }

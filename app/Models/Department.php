@@ -24,8 +24,13 @@ class Department extends Model
         return $this->belongsTo(Site::class);
     }
 
-    public function visits(): HasMany
+    public function visits()
     {
         return $this->hasMany(Visit::class);
+    }
+
+    public function users()
+    {
+        return $this->hasMany(User::class);
     }
 }

@@ -23,8 +23,13 @@ class Site extends Model
         return $this->hasMany(Department::class);
     }
 
-    public function visits(): HasMany
+    public function visits()
     {
         return $this->hasMany(Visit::class);
+    }
+
+    public function users()
+    {
+        return $this->hasMany(User::class);
     }
 }
