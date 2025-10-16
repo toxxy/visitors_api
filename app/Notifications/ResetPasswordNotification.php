@@ -89,8 +89,9 @@ class ResetPasswordNotification extends Notification
         if (static::$createUrlCallback) {
             return call_user_func(static::$createUrlCallback, $notifiable, $this->token);
         }
-
-        return url(config('app.frontend_url').'/reset-password?token='.$this->token.'&email='.urlencode($notifiable->getEmailForPasswordReset()));
+        $base = rtrim(config('app.frontend_url') ?? config('app.url'), '/');
+        $email = urlencode($notifiable->getEmailForPasswordReset());
+        return $base.'/reset-password?token='.$this->token.'&email='.$email;
     }
 
     /**
