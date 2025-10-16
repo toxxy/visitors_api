@@ -54,8 +54,6 @@ return [
 
     'url' => env('APP_URL', 'http://localhost'),
 
-    'frontend_url' => env('APP_FRONTEND_URL', 'http://localhost:3000'),
-
     /*
     |--------------------------------------------------------------------------
     | Application Timezone
@@ -66,6 +64,9 @@ return [
     | is set to "UTC" by default as it is suitable for most use cases.
     |
     */
+
+    // Frontend base URL (React app), used for building links in notifications
+    'frontend_url' => env('APP_FRONTEND_URL', env('APP_URL', 'http://localhost')),
 
     'timezone' => 'UTC',
 

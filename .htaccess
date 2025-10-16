@@ -1,0 +1,18 @@
+### /visitors/api/.htaccess (Hostinger/Apache)
+## Objetivo: servir Laravel desde subcarpeta /api, reescribiendo a public/
+
+RewriteEngine On
+RewriteBase /api/
+
+# Preservar el header Authorization (Bearer)
+RewriteCond %{HTTP:Authorization} .
+RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+# No tocar si ya apunta a /api/public
+RewriteRule ^public/ - [L]
+
+# /api/ -> /api/public/index.php (evita 403 por acceso a carpeta)
+RewriteRule ^$ public/index.php [L]
+
+# Todo lo demás -> /api/public/<path>
+RewriteRule ^(.*)$ public/$1 [L]

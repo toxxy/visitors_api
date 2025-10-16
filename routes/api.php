@@ -15,6 +15,14 @@ use App\Http\Controllers\SecurityController;
 use App\Http\Controllers\ManagerController;
 use App\Http\Controllers\PasswordResetController;
 
+// Lightweight health check (no DB requirement)
+Route::get('health', function () {
+    return response()->json([
+        'status' => 'ok',
+        'time' => now()->toISOString(),
+    ]);
+});
+
 Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');

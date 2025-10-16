@@ -12,11 +12,10 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        $middleware->statefulApi();
+        // For a token-based API (Bearer tokens), avoid Sanctum's stateful API
+        // and session/cookie middleware to prevent CSRF enforcement.
         $middleware->api([
             \Illuminate\Http\Middleware\HandleCors::class,
-            \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
-            \Illuminate\Session\Middleware\StartSession::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

@@ -15,11 +15,27 @@ class VisitConfirmationNotification extends Notification implements ShouldQueue
     protected $visit;
 
     /**
+     * Number of attempts for queued delivery (used when queue connection is not 'sync').
+     */
+    public $tries = 3;
+
+    /**
+     * Backoff delays between retry attempts in seconds.
+     * For example: retry after 10s, then 60s, then 120s.
+     */
+    public function backoff(): array
+    {
+        return [10, 60, 120];
+    }
+
+    /**
      * Create a new notification instance.
      */
     public function __construct(Visit $visit)
     {
         $this->visit = $visit;
+        // Ensure the notification is dispatched after any open DB transaction commits.
+        $this->afterCommit = true;
     }
 
     /**
