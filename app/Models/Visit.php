@@ -21,6 +21,8 @@ class Visit extends Model
         'status',
         'updated_by',
         'notes',
+        'is_unplanned',
+        'visit_to',
         'is_invalid',
         'invalid_reason',
         'checked_in_at',
@@ -36,6 +38,7 @@ class Visit extends Model
         'checked_in_at' => 'datetime',
         'checked_out_at' => 'datetime',
         'is_invalid' => 'boolean',
+        'is_unplanned' => 'boolean',
     ];
 
     public function department(): BelongsTo

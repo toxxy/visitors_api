@@ -41,6 +41,7 @@ class UserManagementController extends Controller
             'role' => 'required|in:admin_master,admin_site,security,manager',
             'site_id' => 'nullable|exists:sites,id',
             'department_id' => 'nullable|exists:departments,id',
+            'notify_unplanned' => 'boolean',
         ];
 
         // Si es admin_site, restringir el sitio
@@ -58,6 +59,7 @@ class UserManagementController extends Controller
             'role' => $request->role,
             'site_id' => $request->site_id,
             'department_id' => $request->department_id,
+            'notify_unplanned' => (bool) $request->input('notify_unplanned', false),
         ]);
 
         $newUser->load(['site', 'department']);
@@ -108,6 +110,7 @@ class UserManagementController extends Controller
             'role' => 'required|in:admin_master,admin_site,security,manager',
             'site_id' => 'nullable|exists:sites,id',
             'department_id' => 'nullable|exists:departments,id',
+            'notify_unplanned' => 'boolean',
         ];
 
         // Si es admin_site, restringir opciones
@@ -128,6 +131,10 @@ class UserManagementController extends Controller
 
         if ($request->filled('password')) {
             $updateData['password'] = Hash::make($request->password);
+        }
+
+        if ($request->has('notify_unplanned')) {
+            $updateData['notify_unplanned'] = (bool) $request->notify_unplanned;
         }
 
         $targetUser->update($updateData);

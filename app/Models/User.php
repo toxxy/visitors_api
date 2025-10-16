@@ -26,6 +26,7 @@ class User extends Authenticatable
         'role',
         'site_id',
         'department_id',
+        'notify_unplanned',
     ];
 
     /**
@@ -48,6 +49,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'notify_unplanned' => 'boolean',
         ];
     }
 
