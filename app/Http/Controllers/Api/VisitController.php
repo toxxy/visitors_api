@@ -58,7 +58,8 @@ class VisitController extends Controller
 
         // Only enforce future date when it's a planned visit
         if (!$request->boolean('is_unplanned')) {
-            $rules['scheduled_at'] .= '|after:now';
+            // Allow scheduling at the moment of creation (>= now)
+            $rules['scheduled_at'] .= '|after_or_equal:now';
         }
 
     $validated = $request->validate($rules);
@@ -140,7 +141,8 @@ class VisitController extends Controller
             'purpose' => 'string|max:500',
             'department_id' => 'nullable|exists:departments,id',
             'site_id' => 'exists:sites,id',
-            'scheduled_at' => 'date|after:now',
+            // Allow updating scheduled_at to now or later
+            'scheduled_at' => 'date|after_or_equal:now',
             'arrived_at' => 'nullable|date',
             'departed_at' => 'nullable|date',
             'status' => 'in:scheduled,confirmed,arrived,completed,cancelled',
