@@ -56,13 +56,22 @@ class VisitController extends Controller
             'visit_to' => 'nullable|string|max:255',
         ];
 
-        // Only enforce future date when it's a planned visit
+        $validated = $request->validate($rules);
+        
+        // Validate that scheduled_at is not in the past (with 1-minute tolerance for clock sync)
         if (!$request->boolean('is_unplanned')) {
-            // Allow scheduling at the moment of creation (>= now)
-            $rules['scheduled_at'] .= '|after_or_equal:now';
+            $scheduledAt = \Carbon\Carbon::parse($request->scheduled_at);
+            $oneMinuteAgo = now()->subMinute();
+            
+            if ($scheduledAt->lt($oneMinuteAgo)) {
+                return response()->json([
+                    'message' => 'No se puede programar una visita en el pasado. Por favor selecciona una fecha y hora actual o futura.',
+                    'errors' => [
+                        'scheduled_at' => ['No se puede programar una visita en el pasado. Por favor selecciona una fecha y hora actual o futura.']
+                    ]
+                ], 422);
+            }
         }
-
-    $validated = $request->validate($rules);
 
         // Normalize boolean
         $validated['is_unplanned'] = $request->boolean('is_unplanned');
@@ -133,7 +142,7 @@ class VisitController extends Controller
      */
     public function update(Request $request, Visit $visit)
     {
-    $validated = $request->validate([
+        $validated = $request->validate([
             'visitor_name' => 'string|max:255',
             'visitor_email' => 'nullable|email|max:255',
             'visitor_phone' => 'nullable|string|max:20',
@@ -141,8 +150,7 @@ class VisitController extends Controller
             'purpose' => 'string|max:500',
             'department_id' => 'nullable|exists:departments,id',
             'site_id' => 'exists:sites,id',
-            // Allow updating scheduled_at to now or later
-            'scheduled_at' => 'date|after_or_equal:now',
+            'scheduled_at' => 'date',
             'arrived_at' => 'nullable|date',
             'departed_at' => 'nullable|date',
             'status' => 'in:scheduled,confirmed,arrived,completed,cancelled',
@@ -150,6 +158,21 @@ class VisitController extends Controller
             'is_unplanned' => 'sometimes|boolean',
             'visit_to' => 'nullable|string|max:255',
         ]);
+        
+        // Validate that scheduled_at is not in the past (with 1-minute tolerance for clock sync)
+        if ($request->has('scheduled_at')) {
+            $scheduledAt = \Carbon\Carbon::parse($request->scheduled_at);
+            $oneMinuteAgo = now()->subMinute();
+            
+            if ($scheduledAt->lt($oneMinuteAgo)) {
+                return response()->json([
+                    'message' => 'No se puede programar una visita en el pasado. Por favor selecciona una fecha y hora actual o futura.',
+                    'errors' => [
+                        'scheduled_at' => ['No se puede programar una visita en el pasado. Por favor selecciona una fecha y hora actual o futura.']
+                    ]
+                ], 422);
+            }
+        }
 
         if ($request->has('is_unplanned')) {
             $validated['is_unplanned'] = $request->boolean('is_unplanned');

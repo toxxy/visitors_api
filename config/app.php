@@ -68,7 +68,7 @@ return [
     // Frontend base URL (React app), used for building links in notifications
     'frontend_url' => env('APP_FRONTEND_URL', env('APP_URL', 'http://localhost')),
 
-    'timezone' => 'UTC',
+    'timezone' => 'America/Chicago',
 
     /*
     |--------------------------------------------------------------------------
