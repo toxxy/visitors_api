@@ -78,7 +78,7 @@ class DashboardController extends Controller
         }
 
         $request->validate([
-            'status' => 'required|in:pending,confirmed,checked_in,checked_out,cancelled'
+            'status' => 'required|in:scheduled,confirmed,arrived,completed,cancelled'
         ]);
 
         $visit->update([
@@ -114,9 +114,9 @@ class DashboardController extends Controller
 
         $stats = [
             'total_visits' => $query->count(),
-            'pending_visits' => (clone $query)->where('status', 'pending')->count(),
+            'pending_visits' => (clone $query)->where('status', 'scheduled')->count(),
             'confirmed_visits' => (clone $query)->where('status', 'confirmed')->count(),
-            'checked_in_visits' => (clone $query)->where('status', 'checked_in')->count(),
+            'checked_in_visits' => (clone $query)->where('status', 'arrived')->count(),
             'todays_visits' => (clone $query)->whereDate('scheduled_at', today())->count(),
         ];
 
