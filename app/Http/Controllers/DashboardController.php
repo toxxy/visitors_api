@@ -123,6 +123,69 @@ class DashboardController extends Controller
         return response()->json($stats);
     }
 
+    public function getDailyVisitsByDepartment(Request $request)
+    {
+        $user = $request->user();
+        $days = $request->input('days', 30); // Por defecto últimos 30 días
+        
+        $query = Visit::query()
+            ->join('departments', 'visits.department_id', '=', 'departments.id')
+            ->selectRaw('DATE(visits.scheduled_at) as date, departments.name as department, COUNT(*) as count')
+            ->where('visits.scheduled_at', '>=', now()->subDays($days))
+            ->groupBy('date', 'department', 'departments.name')
+            ->orderBy('date', 'asc');
+
+        // Aplicar filtros según el rol del usuario
+        switch ($user->role) {
+            case 'admin_master':
+                // Puede ver todos los datos
+                break;
+            case 'admin_site':
+                $query->where('visits.site_id', $user->site_id);
+                break;
+            case 'manager':
+                $query->where('visits.department_id', $user->department_id);
+                break;
+            case 'security':
+                // Puede ver todos los datos
+                break;
+        }
+
+        $data = $query->get();
+
+        // Organizar datos para el gráfico
+        $dates = [];
+        $departments = [];
+        $chartData = [];
+
+        foreach ($data as $row) {
+            if (!in_array($row->date, $dates)) {
+                $dates[] = $row->date;
+            }
+            if (!in_array($row->department, $departments)) {
+                $departments[] = $row->department;
+            }
+        }
+
+        // Crear estructura de datos para el gráfico
+        foreach ($departments as $dept) {
+            $deptData = [];
+            foreach ($dates as $date) {
+                $count = $data->where('date', $date)->where('department', $dept)->first();
+                $deptData[] = $count ? $count->count : 0;
+            }
+            $chartData[] = [
+                'label' => $dept,
+                'data' => $deptData
+            ];
+        }
+
+        return response()->json([
+            'labels' => $dates,
+            'datasets' => $chartData
+        ]);
+    }
+
     private function canManageVisit($user, $visit)
     {
         switch ($user->role) {

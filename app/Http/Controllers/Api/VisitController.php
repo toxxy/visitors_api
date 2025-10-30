@@ -7,6 +7,7 @@ use App\Models\Visit;
 use App\Models\User;
 use App\Notifications\VisitConfirmationNotification;
 use App\Notifications\UnplannedVisitAlertNotification;
+use App\Notifications\NewVisitForDepartmentNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Notification;
 
@@ -99,19 +100,37 @@ class VisitController extends Controller
             }
         }
 
-        // Notify managers (opt-in) if unplanned
+        // Notify users (opt-in) from the same site if unplanned
         if (!empty($validated['is_unplanned'])) {
-            $managers = User::where('role', 'manager')
-                ->where('site_id', $visit->site_id)
+            $usersToNotify = User::where('site_id', $visit->site_id)
                 ->where('notify_unplanned', true)
                 ->get();
 
-            foreach ($managers as $manager) {
+            foreach ($usersToNotify as $userToNotify) {
                 try {
-                    $manager->notify(new UnplannedVisitAlertNotification($visit));
+                    $userToNotify->notify(new UnplannedVisitAlertNotification($visit));
                 } catch (\Throwable $e) {
-                    \Log::warning('Failed to notify manager for unplanned visit', [
-                        'manager_id' => $manager->id,
+                    \Log::warning('Failed to notify user for unplanned visit', [
+                        'user_id' => $userToNotify->id,
+                        'visit_id' => $visit->id,
+                        'error' => $e->getMessage(),
+                    ]);
+                }
+            }
+        }
+
+        // Notify department users for scheduled visits
+        if (empty($validated['is_unplanned']) && !empty($visit->department_id)) {
+            $departmentUsers = User::where('site_id', $visit->site_id)
+                ->where('department_id', $visit->department_id)
+                ->get();
+
+            foreach ($departmentUsers as $departmentUser) {
+                try {
+                    $departmentUser->notify(new NewVisitForDepartmentNotification($visit));
+                } catch (\Throwable $e) {
+                    \Log::warning('Failed to notify department user for new visit', [
+                        'user_id' => $departmentUser->id,
                         'visit_id' => $visit->id,
                         'error' => $e->getMessage(),
                     ]);
@@ -189,5 +208,107 @@ class VisitController extends Controller
     {
         $visit->delete();
         return response()->json(null, 204);
+    }
+
+    /**
+     * Confirm a visit from email link (GET version)
+     */
+    public function confirmFromEmailGet(Visit $visit, string $token)
+    {
+        // Verify token
+        $expectedToken = base64_encode($visit->visitor_email . '|' . $visit->id);
+        
+        if ($token !== $expectedToken) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Token inválido o expirado.',
+            ], 403);
+        }
+
+        // Check if already confirmed
+        if ($visit->status === 'confirmed') {
+            return response()->json([
+                'success' => true,
+                'message' => 'Esta visita ya fue confirmada anteriormente.',
+                'visit' => $visit->load(['department', 'site']),
+            ]);
+        }
+
+        // Update status to confirmed
+        $visit->update(['status' => 'confirmed']);
+        $visit->load(['department', 'site']);
+
+        // Notify visitor about confirmation
+        if (!empty($visit->visitor_email)) {
+            try {
+                Notification::route('mail', $visit->visitor_email)
+                    ->notify(new VisitConfirmationNotification($visit));
+            } catch (\Throwable $e) {
+                \Log::error('Failed to send visit confirmation email', [
+                    'visit_id' => $visit->id,
+                    'visitor_email' => $visit->visitor_email,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Visita confirmada exitosamente. El visitante ha sido notificado.',
+            'visit' => $visit,
+        ]);
+    }
+
+    /**
+     * Confirm a visit from email link
+     */
+    public function confirmFromEmail(Request $request, Visit $visit)
+    {
+        $validated = $request->validate([
+            'token' => 'required|string',
+        ]);
+
+        // Verify token
+        $expectedToken = base64_encode($visit->visitor_email . '|' . $visit->id);
+        
+        if ($validated['token'] !== $expectedToken) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Token inválido o expirado.',
+            ], 403);
+        }
+
+        // Check if already confirmed
+        if ($visit->status === 'confirmed') {
+            return response()->json([
+                'success' => true,
+                'message' => 'Esta visita ya fue confirmada anteriormente.',
+                'visit' => $visit->load(['department', 'site']),
+            ]);
+        }
+
+        // Update status to confirmed
+        $visit->update(['status' => 'confirmed']);
+        $visit->load(['department', 'site']);
+
+        // Notify visitor about confirmation
+        if (!empty($visit->visitor_email)) {
+            try {
+                Notification::route('mail', $visit->visitor_email)
+                    ->notify(new VisitConfirmationNotification($visit));
+            } catch (\Throwable $e) {
+                \Log::error('Failed to send visit confirmation email', [
+                    'visit_id' => $visit->id,
+                    'visitor_email' => $visit->visitor_email,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Visita confirmada exitosamente. El visitante ha sido notificado.',
+            'visit' => $visit,
+        ]);
     }
 }

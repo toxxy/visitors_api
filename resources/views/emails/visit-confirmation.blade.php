@@ -305,6 +305,27 @@
                             <li>Mantén este documento contigo durante la visita</li>
                         </ul>
                     </div>
+
+                    <div style="background-color: #fee2e2; border: 2px solid #ef4444; border-radius: 8px; padding: 16px; margin-top: 16px;">
+                        <h4 style="font-weight: 600; color: #991b1b; margin-bottom: 8px; text-align: center;">⚠️ IMPORTANTE - Áreas de Producción</h4>
+                        <p style="font-size: 13px; color: #7f1d1d; text-align: left; margin: 8px 0; line-height: 1.5;">
+                            Si tu visita tiene alcance en áreas de producción, recuerda llevar:
+                        </p>
+                        <ul style="font-size: 13px; color: #7f1d1d; margin: 8px 0; padding-left: 20px; text-align: left;">
+                            <li>Chaleco de seguridad</li>
+                            <li>Zapatos de seguridad</li>
+                            <li>Lentes de protección</li>
+                            <li>Cofia</li>
+                            <li>Cubrebarbas</li>
+                        </ul>
+                        <p style="font-size: 13px; color: #7f1d1d; text-align: left; margin: 8px 0; font-weight: 600;">
+                            🚫 NO se permite ingresar con:
+                        </p>
+                        <ul style="font-size: 13px; color: #7f1d1d; margin: 0; padding-left: 20px; text-align: left;">
+                            <li>Maquillaje</li>
+                            <li>Joyería</li>
+                        </ul>
+                    </div>
                 </div>
             </div>
         </div>

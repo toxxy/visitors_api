@@ -43,6 +43,8 @@ Route::get('sites/{site}/departments', function ($siteId) {
 
 // Visit confirmation routes
 Route::get('visits/{visit}/confirmation', [VisitConfirmationController::class, 'generateConfirmation']);
+Route::get('visits/{visit}/confirm-from-email/{token}', [VisitController::class, 'confirmFromEmailGet']);
+Route::post('visits/{visit}/confirm-from-email', [VisitController::class, 'confirmFromEmail']);
 
 // Auth routes
 Route::post('login', [AuthController::class, 'login']);
@@ -60,6 +62,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('dashboard/visits', [DashboardController::class, 'getVisits']);
     Route::patch('dashboard/visits/{id}/status', [DashboardController::class, 'updateVisitStatus']);
     Route::get('dashboard/stats', [DashboardController::class, 'getStats']);
+    Route::get('dashboard/daily-visits-by-department', [DashboardController::class, 'getDailyVisitsByDepartment']);
     
     // Management routes
     Route::apiResource('management/users', UserManagementController::class);

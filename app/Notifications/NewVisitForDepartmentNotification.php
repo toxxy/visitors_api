@@ -7,7 +7,7 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class UnplannedVisitAlertNotification extends Notification
+class NewVisitForDepartmentNotification extends Notification
 {
     use Queueable;
 
@@ -25,11 +25,11 @@ class UnplannedVisitAlertNotification extends Notification
 
     public function toMail(object $notifiable): MailMessage
     {
-        $subject = 'Alerta persona sin cita previa - ' . ($this->visit->site->name ?? 'Sitio');
+        $subject = 'Nueva visita programada - ' . ($this->visit->department->name ?? 'Departamento');
 
         return (new MailMessage)
             ->subject($subject)
-            ->view('emails.unplanned-visit-alert', [
+            ->view('emails.new-visit-for-department', [
                 'visit' => $this->visit,
                 'recipient' => $notifiable,
             ]);
@@ -39,7 +39,7 @@ class UnplannedVisitAlertNotification extends Notification
     {
         return [
             'visit_id' => $this->visit->id,
-            'is_unplanned' => $this->visit->is_unplanned,
+            'department_id' => $this->visit->department_id,
             'site_id' => $this->visit->site_id,
         ];
     }

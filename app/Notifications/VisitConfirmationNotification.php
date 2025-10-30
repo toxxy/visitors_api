@@ -4,29 +4,14 @@ namespace App\Notifications;
 
 use App\Models\Visit;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class VisitConfirmationNotification extends Notification implements ShouldQueue
+class VisitConfirmationNotification extends Notification
 {
     use Queueable;
 
     protected $visit;
-
-    /**
-     * Number of attempts for queued delivery (used when queue connection is not 'sync').
-     */
-    public $tries = 3;
-
-    /**
-     * Backoff delays between retry attempts in seconds.
-     * For example: retry after 10s, then 60s, then 120s.
-     */
-    public function backoff(): array
-    {
-        return [10, 60, 120];
-    }
 
     /**
      * Create a new notification instance.
@@ -34,8 +19,6 @@ class VisitConfirmationNotification extends Notification implements ShouldQueue
     public function __construct(Visit $visit)
     {
         $this->visit = $visit;
-        // Ensure the notification is dispatched after any open DB transaction commits.
-        $this->afterCommit = true;
     }
 
     /**
